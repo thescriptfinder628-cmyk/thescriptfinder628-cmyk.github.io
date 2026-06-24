@@ -7,636 +7,532 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Flashlight">
-<meta name="description" content="A powerful flashlight app with torch, strobe, disco, and SOS modes.">
-<meta name="theme-color" content="#0d0d14">
-<title>Flashlight - Ultimate Torch App</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%230d0d14' width='180' height='180'/><text x='90' y='120' font-size='80' font-weight='bold' fill='%234f8eff' text-anchor='middle' font-family='sans-serif'>🔦</text></svg>">
+<meta name="description" content="Real flashlight app using your device's camera flash.">
+<meta name="theme-color" content="#000000">
+<title>Real Flashlight</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23000000' width='180' height='180'/><text x='90' y='120' font-size='80' font-weight='bold' fill='%23ffeb3b' text-anchor='middle' font-family='sans-serif'>🔦</text></svg>">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500&display=swap');
-
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
-html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif}
+html,body{height:100%;width:100%;overflow:hidden;font-family:system-ui,sans-serif;background:#000}
 
-/* ══ LIGHT LAYER ══ */
-#lightLayer{
-  position:fixed;inset:0;z-index:0;
-  opacity:0;pointer-events:none;
-  background:#ffffff;
-  transition:opacity .25s ease;
+body{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#1a1a1a;
 }
 
-/* ══ STROBE ANIMATION ══ */
-@keyframes strobe{0%,49%{opacity:1}50%,100%{opacity:0}}
-#lightLayer.strobe{animation:strobe .2s step-end infinite}
-#lightLayer.strobe-slow{animation:strobe .6s step-end infinite}
-
-/* ══ APP SHELL ══ */
-body{background:#0d0d14;color:#fff}
-
-.app{
-  position:relative;z-index:1;
+.container{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:40px;
+  width:100%;
   height:100%;
-  display:flex;flex-direction:column;
-  transition:opacity .25s ease;
+  padding:20px;
 }
-body.ON .app{opacity:0;pointer-events:none}
 
-/* ══ HEADER ══ */
-header{
-  padding:52px 28px 0;
-  display:flex;justify-content:space-between;align-items:flex-start;
-}
-.logo{
-  font-family:'Syne',sans-serif;
-  font-size:26px;font-weight:800;
-  letter-spacing:-0.5px;
+.status{
+  text-align:center;
   color:#fff;
-}
-.logo span{color:#4f8eff}
-.badge{
-  font-size:9px;font-weight:500;letter-spacing:3px;
-  color:#252540;text-transform:uppercase;
-  background:#131320;border:1px solid #1e1e35;
-  padding:6px 12px;border-radius:20px;margin-top:6px;
-  transition:all .3s ease;
+  font-size:14px;
+  letter-spacing:1px;
 }
 
-/* ══ CENTER SECTION ══ */
-.center{
-  flex:1;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  gap:0;padding:20px;
+.status-dot{
+  display:inline-block;
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  margin-right:10px;
+  background:#ff4444;
+  animation:pulse-status 1s infinite;
 }
 
-/* ── POWER BUTTON ── */
-.btn-ring-wrap{
+.status-dot.active{
+  background:#44ff44;
+  animation:pulse-status-active 1s infinite;
+}
+
+@keyframes pulse-status{
+  0%,100%{opacity:0.6}
+  50%{opacity:1}
+}
+
+@keyframes pulse-status-active{
+  0%,100%{opacity:1}
+  50%{opacity:0.7}
+}
+
+.power-button{
+  width:200px;
+  height:200px;
+  border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, #333, #000);
+  border:3px solid #333;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:80px;
+  transition:all 0.1s ease;
+  box-shadow:0 0 40px rgba(255,255,255,0.1), inset 0 0 20px rgba(0,0,0,0.5);
   position:relative;
-  display:flex;align-items:center;justify-content:center;
-  margin-bottom:44px;
-}
-.pulse-ring{
-  position:absolute;border-radius:50%;
-  border:1px solid rgba(79,142,255,0.08);
-  animation:pulse 3s ease-in-out infinite;
-}
-.pulse-ring:nth-child(1){width:210px;height:210px;animation-delay:0s}
-.pulse-ring:nth-child(2){width:260px;height:260px;animation-delay:.5s}
-.pulse-ring:nth-child(3){width:310px;height:310px;animation-delay:1s}
-@keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.15;transform:scale(1.03)}}
-
-#powerBtn{
-  width:158px;height:158px;border-radius:50%;
-  position:relative;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  background:conic-gradient(from 180deg,#1a1a2e,#151525,#1a1a2e);
-  border:1.5px solid #232340;
-  box-shadow:
-    0 0 0 8px #0f0f1c,
-    0 0 0 10px #161626,
-    0 24px 60px rgba(0,0,0,.85),
-    inset 0 1px 0 rgba(255,255,255,.06);
   overflow:hidden;
-  transition:transform .12s ease,box-shadow .12s ease;
-}
-#powerBtn::before{
-  content:'';position:absolute;
-  top:8%;left:12%;width:40%;height:28%;
-  background:linear-gradient(135deg,rgba(255,255,255,.08),transparent);
-  border-radius:50%;pointer-events:none;
-}
-#powerBtn:active{transform:scale(.9)}
-
-.power-icon{
-  width:48px;height:48px;position:relative;
-  display:flex;align-items:center;justify-content:center;
-  font-size:24px;
-}
-#pRing{fill:none;stroke:#1e1e38;stroke-width:2.8;stroke-linecap:round;stroke-dasharray:200;stroke-dashoffset:50;transition:stroke .3s,filter .3s}
-#pStem{stroke:#1e1e38;stroke-width:2.8;stroke-linecap:round;transition:stroke .3s,filter .3s}
-
-.power-label{
-  font-family:'Syne',sans-serif;
-  font-size:9px;font-weight:700;letter-spacing:4px;
-  color:#1e1e38;text-transform:uppercase;
-  transition:color .3s;
 }
 
-/* ── STATUS BAR ── */
-.status-bar{
-  display:flex;align-items:center;gap:10px;
-  background:#111120;border:1px solid #1a1a30;
-  border-radius:30px;padding:10px 24px;
-  margin-bottom:36px;
-}
-.led{
-  width:8px;height:8px;border-radius:50%;
-  background:#1a1a30;
-  transition:background .25s,box-shadow .25s;
-}
-.status-text{
-  font-size:11px;font-weight:500;letter-spacing:3px;
-  color:#1e1e38;text-transform:uppercase;
-  transition:color .25s;
+.power-button::before{
+  content:'';
+  position:absolute;
+  top:10%;
+  left:10%;
+  width:30%;
+  height:30%;
+  background:radial-gradient(circle, rgba(255,255,255,0.2), transparent);
+  border-radius:50%;
+  pointer-events:none;
 }
 
-/* ── BRIGHTNESS ── */
-.bright-section{width:85%;max-width:300px;margin-bottom:32px}
-.section-label{
-  font-size:9px;font-weight:500;letter-spacing:3px;
-  color:#1e1e38;text-transform:uppercase;
-  display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:12px;
+.power-button:active{
+  transform:scale(0.95);
+  box-shadow:0 0 60px rgba(255,255,255,0.2), inset 0 0 20px rgba(0,0,0,0.5);
 }
-.section-label span{color:#252545}
-.track{
-  width:100%;height:6px;background:#111120;border-radius:3px;
-  position:relative;overflow:visible;
-}
-.track-fill{
-  height:100%;border-radius:3px;
-  background:linear-gradient(90deg,#2a2a50,#4f8eff);
-  transition:width .05s;
-  box-shadow:0 0 8px rgba(79,142,255,.3);
-}
-input#brightSlider{
-  position:absolute;inset:0;width:100%;height:100%;
-  -webkit-appearance:none;appearance:none;
-  opacity:0;cursor:pointer;
-  margin:0;
-}
-input#brightSlider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;}
-input#brightSlider::-moz-range-thumb{width:24px;height:24px;border:none;background:transparent;cursor:pointer;}
 
-/* ── MODES GRID ── */
-.modes-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  gap:8px;width:85%;max-width:300px;
+.power-button.on{
+  background:radial-gradient(circle at 30% 30%, #ffeb3b, #ffa500);
+  border-color:#ffeb3b;
+  box-shadow:0 0 80px rgba(255,235,59,0.6), inset 0 0 20px rgba(0,0,0,0.5);
 }
+
+.controls{
+  display:flex;
+  gap:20px;
+  flex-direction:column;
+  align-items:center;
+  width:100%;
+  max-width:300px;
+}
+
+.brightness-section{
+  width:100%;
+}
+
+.brightness-label{
+  color:#aaa;
+  font-size:12px;
+  margin-bottom:10px;
+  display:flex;
+  justify-content:space-between;
+  letter-spacing:1px;
+}
+
+.brightness-slider{
+  width:100%;
+  height:8px;
+  border-radius:4px;
+  background:#333;
+  outline:none;
+  -webkit-appearance:none;
+  appearance:none;
+  cursor:pointer;
+}
+
+.brightness-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:#ffeb3b;
+  cursor:pointer;
+  box-shadow:0 0 10px rgba(255,235,59,0.5);
+}
+
+.brightness-slider::-moz-range-thumb{
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:#ffeb3b;
+  cursor:pointer;
+  border:none;
+  box-shadow:0 0 10px rgba(255,235,59,0.5);
+}
+
+.mode-buttons{
+  display:flex;
+  gap:10px;
+  width:100%;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
 .mode-btn{
-  background:#111120;border:1px solid #1a1a30;
-  border-radius:14px;padding:12px 6px;
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  cursor:pointer;transition:all .2s ease;
-  position:relative;overflow:hidden;
-}
-.mode-btn::before{
-  content:'';position:absolute;inset:0;
-  background:var(--accent,#4f8eff);
-  opacity:0;transition:opacity .2s;
-}
-.mode-btn.active{border-color:var(--accent,#4f8eff);box-shadow:0 0 16px rgba(79,142,255,.2)}
-.mode-btn.active::before{opacity:.08}
-.mode-btn:active{transform:scale(.93)}
-.mode-icon{font-size:20px;position:relative;z-index:1}
-.mode-name{font-size:8px;font-weight:500;letter-spacing:1px;color:#252545;text-transform:uppercase;position:relative;z-index:1;transition:color .2s}
-.mode-btn.active .mode-name{color:var(--accent,#4f8eff)}
-
-/* ══ BOTTOM ══ */
-footer{
-  padding:0 28px 44px;
-  display:flex;flex-direction:column;gap:12px;
+  background:#222;
+  border:2px solid #333;
+  color:#888;
+  padding:10px 20px;
+  border-radius:20px;
+  cursor:pointer;
+  font-size:12px;
+  font-weight:bold;
+  letter-spacing:1px;
+  transition:all 0.2s;
+  text-transform:uppercase;
 }
 
-/* SOS & STROBE row */
-.extras{display:flex;gap:10px}
-.extra-btn{
-  flex:1;background:#111120;border:1px solid #1a1a30;
-  border-radius:14px;padding:14px 10px;
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  cursor:pointer;transition:all .2s;
-}
-.extra-btn:active{transform:scale(.95)}
-.extra-btn.active{border-color:#ff4f4f;box-shadow:0 0 16px rgba(255,79,79,.2)}
-.extra-icon{font-size:18px}
-.extra-name{font-size:8px;font-weight:500;letter-spacing:2px;color:#252545;text-transform:uppercase;transition:color .2s}
-.extra-btn.active .extra-name{color:#ff4f4f}
-
-/* brightness label row */
-.bright-icons{display:flex;align-items:center;gap:0}
-.bi{font-size:12px;opacity:.18;flex-shrink:0}
-.bi.lg{font-size:18px;opacity:.3}
-
-/* ══ ON OVERLAY ══ */
-#onOverlay{
-  position:fixed;inset:0;z-index:2;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:flex-end;
-  padding-bottom:52px;
-  opacity:0;pointer-events:none;
-  transition:opacity .25s;
-}
-body.ON #onOverlay{opacity:1;pointer-events:all}
-#tapOff{position:absolute;inset:0;cursor:pointer}
-.on-card{
-  position:relative;z-index:1;
-  display:flex;flex-direction:column;align-items:center;gap:10px;
-  width:88%;max-width:320px;
-}
-.on-pill{
-  width:100%;
-  background:rgba(0,0,0,.12);border:1px solid rgba(0,0,0,.1);
-  border-radius:20px;padding:18px 22px;
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  display:flex;flex-direction:column;gap:14px;
-}
-.on-pill-lbl{font-size:9px;letter-spacing:3px;color:rgba(0,0,0,.35);text-transform:uppercase}
-.on-bright-row{display:flex;align-items:center;gap:10px}
-.on-bi{font-size:13px;color:rgba(0,0,0,.2)}
-.on-bi.lg{font-size:18px}
-input#bOn{
-  flex:1;-webkit-appearance:none;appearance:none;
-  height:5px;background:rgba(0,0,0,.15);border-radius:3px;outline:none;
-}
-input#bOn::-webkit-slider-thumb{
-  -webkit-appearance:none;width:24px;height:24px;border-radius:50%;
-  background:rgba(0,0,0,.22);border:2px solid rgba(0,0,0,.3);cursor:pointer;
-}
-input#bOn::-moz-range-thumb{
-  width:24px;height:24px;border-radius:50%;
-  background:rgba(0,0,0,.22);border:2px solid rgba(0,0,0,.3);cursor:pointer;
-}
-.on-info{font-size:10px;color:rgba(0,0,0,.3);letter-spacing:1px;text-align:center}
-.off-big-btn{
-  width:100%;
-  background:rgba(0,0,0,.14);border:1.5px solid rgba(0,0,0,.14);
-  border-radius:16px;padding:16px;
-  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
-  letter-spacing:4px;color:rgba(0,0,0,.4);
-  cursor:pointer;text-transform:uppercase;
-  transition:background .15s;
-}
-.off-big-btn:active{background:rgba(0,0,0,.22)}
-
-/* ══ TOAST ══ */
-#toast{
-  position:fixed;top:52px;left:50%;
-  transform:translateX(-50%) translateY(-10px);
-  background:#131320;border:1px solid #252540;
-  border-radius:12px;padding:10px 20px;
-  font-size:11px;letter-spacing:1px;color:#666;
-  opacity:0;transition:all .3s;pointer-events:none;z-index:999;
-  white-space:nowrap;
-}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* ══ MOBILE FIX ══ */
-@supports (padding: max(0px)) {
-  body { padding: max(0px, env(safe-area-inset-bottom)); }
+.mode-btn:active{
+  transform:scale(0.95);
 }
 
-/* Landscape mode adjustment */
-@media (max-height: 600px) {
-  header { padding: 20px 28px 0; }
-  .btn-ring-wrap { margin-bottom: 20px; }
-  .status-bar { margin-bottom: 16px; }
-  .modes-grid { margin-bottom: 12px; }
+.mode-btn.active{
+  background:#ffeb3b;
+  border-color:#ffeb3b;
+  color:#000;
+  box-shadow:0 0 20px rgba(255,235,59,0.5);
+}
+
+.info-text{
+  color:#666;
+  font-size:12px;
+  text-align:center;
+  margin-top:20px;
+  letter-spacing:0.5px;
+}
+
+.error{
+  color:#ff4444;
+  background:#1a0000;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+  font-size:12px;
+  border:1px solid #330000;
+}
+
+.success{
+  color:#44ff44;
+  background:#001a00;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+  font-size:12px;
+  border:1px solid #003300;
+}
+
+#permission-warning{
+  display:none;
+  margin-top:20px;
+}
+
+@media (max-width: 480px) {
+  .power-button{
+    width:160px;
+    height:160px;
+    font-size:60px;
+  }
+  
+  .controls{
+    max-width:100%;
+  }
+}
+
+@media (orientation: landscape) {
+  .container{
+    flex-direction:row;
+    gap:60px;
+  }
+  
+  .power-button{
+    width:160px;
+    height:160px;
+    font-size:60px;
+  }
 }
 </style>
 </head>
 <body>
 
-<div id="lightLayer"></div>
-<div id="toast"></div>
-
-<!-- ══ OFF STATE ══ -->
-<div class="app">
-  <header>
-    <div>
-      <div class="logo">Flash<span>.</span></div>
-      <div class="badge" id="modeBadge">● INITIALIZING</div>
+<div class="container">
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
+    <div class="status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">INITIALIZING...</span>
     </div>
-  </header>
-
-  <div class="center">
-    <!-- POWER BUTTON -->
-    <div class="btn-ring-wrap">
-      <div class="pulse-ring"></div>
-      <div class="pulse-ring"></div>
-      <div class="pulse-ring"></div>
-      <div id="powerBtn" onclick="toggle()">
-        <div class="power-icon">🔦</div>
-        <div class="power-label" id="powerLbl">TAP TO ON</div>
-      </div>
-    </div>
-
-    <!-- STATUS -->
-    <div class="status-bar">
-      <div class="led" id="led"></div>
-      <div class="status-text" id="statusTxt">STANDBY</div>
-    </div>
-
-    <!-- BRIGHTNESS -->
-    <div class="bright-section">
-      <div class="section-label">
-        Brightness
-        <span id="brightVal">100%</span>
-      </div>
-      <div class="track">
-        <div class="track-fill" id="trackFill" style="width:100%"></div>
-        <input type="range" id="brightSlider" min="10" max="100" value="100" oninput="setBright(+this.value)">
-      </div>
-    </div>
-
-    <!-- COLOR MODES -->
-    <div class="section-label" style="width:85%;max-width:300px;margin-bottom:12px">
-      <span style="color:#1e1e38;font-size:9px;letter-spacing:3px">COLOR MODE</span>
-    </div>
-    <div class="modes-grid">
-      <div class="mode-btn active" style="--accent:#f5f5ff" data-color="#ffffff" onclick="setColor(this,'#ffffff')">
-        <div class="mode-icon">⬜</div>
-        <div class="mode-name">White</div>
-      </div>
-      <div class="mode-btn" style="--accent:#ff6060" data-color="#ff2020" onclick="setColor(this,'#ff2020')">
-        <div class="mode-icon">🔴</div>
-        <div class="mode-name">Red</div>
-      </div>
-      <div class="mode-btn" style="--accent:#4f8eff" data-color="#3070ff" onclick="setColor(this,'#3070ff')">
-        <div class="mode-icon">🔵</div>
-        <div class="mode-name">Blue</div>
-      </div>
-      <div class="mode-btn" style="--accent:#50ff80" data-color="#10e050" onclick="setColor(this,'#10e050')">
-        <div class="mode-icon">🟢</div>
-        <div class="mode-name">Green</div>
-      </div>
-    </div>
+    
+    <div class="power-button" id="powerBtn" onclick="toggleFlash()">🔦</div>
   </div>
 
-  <footer>
-    <div class="extras">
-      <div class="extra-btn" id="strobeBtn" onclick="toggleStrobe()">
-        <div class="extra-icon">⚡</div>
-        <div class="extra-name">Strobe</div>
+  <div class="controls">
+    <div class="brightness-section">
+      <div class="brightness-label">
+        <span>BRIGHTNESS</span>
+        <span id="brightDisplay">100%</span>
       </div>
-      <div class="extra-btn" id="slowStrobeBtn" onclick="toggleSlowStrobe()">
-        <div class="extra-icon">🌀</div>
-        <div class="extra-name">Disco</div>
-      </div>
-      <div class="extra-btn" id="sosBtn" onclick="toggleSOS()">
-        <div class="extra-icon">🆘</div>
-        <div class="extra-name">SOS</div>
-      </div>
+      <input type="range" id="brightnessSlider" class="brightness-slider" min="10" max="100" value="100" oninput="updateBrightness(this.value)">
     </div>
-  </footer>
-</div>
 
-<!-- ══ ON OVERLAY ══ -->
-<div id="onOverlay">
-  <div id="tapOff" onclick="toggle()"></div>
-  <div class="on-card" onclick="event.stopPropagation()">
-    <div class="on-pill">
-      <div class="on-pill-lbl">Brightness</div>
-      <div class="on-bright-row">
-        <span class="on-bi">☀</span>
-        <input type="range" id="bOn" min="10" max="100" value="100" oninput="setBright(+this.value)">
-        <span class="on-bi lg">☀</span>
-      </div>
-      <div class="on-info" id="onInfo">Tap anywhere to turn off</div>
+    <div class="mode-buttons">
+      <button class="mode-btn active" id="normalMode" onclick="setMode('normal')">NORMAL</button>
+      <button class="mode-btn" id="strobeMode" onclick="setMode('strobe')">STROBE</button>
+      <button class="mode-btn" id="sosMode" onclick="setMode('sos')">SOS</button>
     </div>
-    <button class="off-big-btn" onclick="toggle()">■ TURN OFF</button>
+
+    <div id="permission-warning" class="error">
+      ❌ Flash not available or permission denied
+    </div>
+    
+    <div id="successMsg" class="success" style="display:none;">
+      ✅ Flash is working!
+    </div>
+
+    <div class="info-text" id="infoText">
+      TAP THE BUTTON TO TURN ON FLASHLIGHT
+    </div>
   </div>
 </div>
 
 <script>
 // ── STATE ──────────────────────────────────────────
-let isOn        = false;
-let torchTrack  = null;
-let hasTorch    = false;
-let bright      = 100;
-let color       = '#ffffff';
-let strobeMode  = null; // null | 'fast' | 'slow' | 'sos'
-let sosTimer    = null;
-let wakeLock    = null;
-let sosIdx      = 0;
+let isFlashOn = false;
+let torchTrack = null;
+let currentMode = 'normal'; // normal, strobe, sos
+let brightness = 100;
+let strobeTimer = null;
+let sosTimer = null;
+let sosPattern = [100, 100, 100, 100, 100, 100, 300, 300, 300, 100, 300, 300, 300, 100, 100, 100, 100, 100, 100, 600];
+let sosIndex = 0;
+let wakeLock = null;
 
 // ── DOM ───────────────────────────────────────────
-const lightLayer  = document.getElementById('lightLayer');
-const powerLbl    = document.getElementById('powerLbl');
-const led         = document.getElementById('led');
-const statusTxt   = document.getElementById('statusTxt');
-const trackFill   = document.getElementById('trackFill');
-const brightVal   = document.getElementById('brightVal');
-const modeBadge   = document.getElementById('modeBadge');
-const onInfo      = document.getElementById('onInfo');
-const toast       = document.getElementById('toast');
+const powerBtn = document.getElementById('powerBtn');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const infoText = document.getElementById('infoText');
+const brightnessSlider = document.getElementById('brightnessSlider');
+const brightDisplay = document.getElementById('brightDisplay');
+const permissionWarning = document.getElementById('permission-warning');
+const successMsg = document.getElementById('successMsg');
+const normalModeBtn = document.getElementById('normalMode');
+const strobeModeBtn = document.getElementById('strobeMode');
+const sosModeBtn = document.getElementById('sosMode');
 
-// ── BRIGHTNESS ────────────────────────────────────
-function setBright(v) {
-  bright = Math.max(10, Math.min(100, v));
-  document.getElementById('brightSlider').value = bright;
-  document.getElementById('bOn').value = bright;
-  trackFill.style.width = bright + '%';
-  brightVal.textContent = bright + '%';
-  if (isOn && strobeMode === null) {
-    lightLayer.style.opacity = (bright / 100).toFixed(2);
-  }
-}
-
-// ── COLOR ─────────────────────────────────────────
-function setColor(btn, col) {
-  color = col;
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (isOn && strobeMode === null) {
-    lightLayer.style.background = col;
-  }
-}
-
-// ── TOAST ─────────────────────────────────────────
-function showToast(msg) {
-  toast.textContent = msg;
-  toast.classList.add('show');
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => toast.classList.remove('show'), 3500);
-}
-
-// ── SOS PATTERN ───────────────────────────────────
-// ... - - - ...  (Morse code)
-const SOS_PATTERN = [
-  1,0,1,0,1,0,      // S: ...
-  3,0,3,0,3,0,      // O: ---
-  1,0,1,0,1,2       // S: ...
-];
-const DOT = 150;
-
-function runSOS() {
-  if (strobeMode !== 'sos') return;
-  const unit = SOS_PATTERN[sosIdx];
-  const isFlash = sosIdx % 2 === 0;
-  lightLayer.style.opacity = isFlash ? (bright / 100).toFixed(2) : '0';
-  sosIdx = (sosIdx + 1) % SOS_PATTERN.length;
-  sosTimer = setTimeout(runSOS, unit * DOT);
-}
-
-// ── STROBE ────────────────────────────────────────
-function clearSpecialModes() {
-  if (sosTimer) { clearTimeout(sosTimer); sosTimer = null; }
-  sosIdx = 0;
-  lightLayer.classList.remove('strobe', 'strobe-slow');
-  lightLayer.style.opacity = isOn ? (bright / 100).toFixed(2) : '0';
-  document.getElementById('strobeBtn').classList.remove('active');
-  document.getElementById('slowStrobeBtn').classList.remove('active');
-  document.getElementById('sosBtn').classList.remove('active');
-  strobeMode = null;
-}
-
-function toggleStrobe() {
-  if (strobeMode === 'fast') { clearSpecialModes(); return; }
-  clearSpecialModes();
-  if (!isOn) { toggle(); return; }
-  strobeMode = 'fast';
-  lightLayer.classList.add('strobe');
-  document.getElementById('strobeBtn').classList.add('active');
-  onInfo.textContent = '⚡ Strobe active — tap to turn off';
-}
-
-function toggleSlowStrobe() {
-  if (strobeMode === 'slow') { clearSpecialModes(); return; }
-  clearSpecialModes();
-  if (!isOn) { toggle(); return; }
-  strobeMode = 'slow';
-  lightLayer.classList.add('strobe-slow');
-  document.getElementById('slowStrobeBtn').classList.add('active');
-  onInfo.textContent = '🌀 Disco mode — tap to turn off';
-}
-
-function toggleSOS() {
-  if (strobeMode === 'sos') { clearSpecialModes(); return; }
-  clearSpecialModes();
-  if (!isOn) { toggle(); return; }
-  strobeMode = 'sos';
-  sosIdx = 0;
-  document.getElementById('sosBtn').classList.add('active');
-  onInfo.textContent = '🆘 SOS signal — tap to turn off';
-  runSOS();
-}
-
-// ── MAIN TOGGLE ───────────────────────────────────
-async function toggle() {
-  if (!isOn) await turnOn();
-  else await turnOff();
-}
-
-async function turnOn() {
-  isOn = true;
-
-  // Try real torch (HTTPS only)
-  if (!torchTrack && !hasTorch) {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-      const track = stream.getVideoTracks()[0];
-      const caps = track.getCapabilities ? track.getCapabilities() : {};
-      if (caps.torch) {
-        torchTrack = track;
-        hasTorch = true;
-        await torchTrack.applyConstraints({ advanced: [{ torch: true }] });
-        modeBadge.textContent = '● TORCH ON';
-        showToast('🔦 Real flashlight ON!');
-      } else {
-        track.stop();
-        showToast('💡 Screen mode (no torch hardware)');
-      }
-    } catch(e) {
-      if (e.name === 'NotAllowedError') showToast('❌ Camera permission denied');
-      else if (e.name === 'NotFoundError') showToast('💡 Screen mode (no camera)');
-      else showToast('💡 Screen mode active');
-    }
-  } else if (hasTorch && torchTrack) {
-    try { await torchTrack.applyConstraints({ advanced: [{ torch: true }] }); } catch(e) {}
-  }
-
-  // Screen light
-  document.body.classList.add('ON');
-  lightLayer.style.background = color;
-  lightLayer.style.opacity = (bright / 100).toFixed(2);
-
-  // Wake lock
-  try {
-    if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
-  } catch(e) {}
-
-  setUI(true);
-}
-
-async function turnOff() {
-  clearSpecialModes();
-  isOn = false;
-
-  if (hasTorch && torchTrack) {
-    try { await torchTrack.applyConstraints({ advanced: [{ torch: false }] }); } catch(e) {}
-  }
-
-  document.body.classList.remove('ON');
-  lightLayer.style.opacity = '0';
-  lightLayer.classList.remove('strobe','strobe-slow');
-
-  if (wakeLock) { try { wakeLock.release(); } catch(e){} wakeLock = null; }
-
-  modeBadge.textContent = hasTorch ? '● TORCH MODE' : '● SCREEN MODE';
-  setUI(false);
-}
-
-function setUI(on) {
-  const c = on ? '#5ca8ff' : '#1e1e38';
-  powerLbl.style.color = c;
-  powerLbl.textContent = on ? 'TAP TO OFF' : 'TAP TO ON';
-  led.style.background = on ? '#4f8eff' : '#1a1a30';
-  led.style.boxShadow = on ? '0 0 8px #4f8eff' : 'none';
-  statusTxt.style.color = on ? '#4f8eff' : '#1e1e38';
-  statusTxt.textContent = on ? 'ACTIVE' : 'STANDBY';
-  onInfo.textContent = 'Tap anywhere to turn off';
-}
-
-// Re-enable torch after tab switch
-document.addEventListener('visibilitychange', async () => {
-  if (!document.hidden && isOn) {
-    if (hasTorch && torchTrack && strobeMode !== 'sos') {
-      try { await torchTrack.applyConstraints({ advanced: [{ torch: true }] }); } catch(e) {}
-    }
-    if ('wakeLock' in navigator) {
-      try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
-    }
-  }
-});
-
-// Detect capabilities on load
-window.addEventListener('load', async () => {
+// ── TORCH CONTROL ────────────────────────────────
+async function initTorch() {
   try {
     if (!navigator.mediaDevices?.getUserMedia) {
-      modeBadge.textContent = '● SCREEN MODE';
-      showToast('📱 Screen mode available');
-    } else {
-      // Try to get camera permission to check for torch
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }
-        });
-        const track = stream.getVideoTracks()[0];
-        const caps = track.getCapabilities ? track.getCapabilities() : {};
-        if (caps.torch) {
-          modeBadge.textContent = '● TORCH READY';
-          track.stop();
-          showToast('🔦 Tap to activate flashlight');
-        } else {
-          modeBadge.textContent = '● SCREEN MODE';
-          track.stop();
-          showToast('📱 Screen mode available');
-        }
-      } catch(e) {
-        modeBadge.textContent = '● SCREEN MODE';
-        showToast('📱 Screen mode available');
-      }
+      throw new Error('Camera API not supported');
     }
-  } catch(e) {
-    modeBadge.textContent = '● SCREEN MODE';
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    });
+
+    const track = stream.getVideoTracks()[0];
+    if (!track) throw new Error('No video track');
+
+    const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+    
+    if (!capabilities.torch) {
+      throw new Error('Torch not supported on this device');
+    }
+
+    torchTrack = track;
+    statusDot.classList.add('active');
+    statusText.textContent = 'READY';
+    permissionWarning.style.display = 'none';
+    infoText.textContent = 'TAP TO ACTIVATE FLASHLIGHT';
+
+    // Turn off torch by default
+    await torchTrack.applyConstraints({
+      advanced: [{ torch: false }]
+    });
+
+  } catch (error) {
+    console.error('Torch init failed:', error);
+    statusDot.classList.remove('active');
+    statusText.textContent = 'NOT AVAILABLE';
+    permissionWarning.style.display = 'block';
+    permissionWarning.innerHTML = `❌ ${error.message}<br><br>Make sure:<br>• You're using HTTPS<br>• Camera permission is granted<br>• Device has a rear camera flash`;
+    infoText.textContent = 'Real torch not available on this device';
+  }
+}
+
+async function turnOnTorch() {
+  if (!torchTrack) return false;
+  try {
+    await torchTrack.applyConstraints({
+      advanced: [{ torch: true }]
+    });
+    return true;
+  } catch (error) {
+    console.error('Failed to turn on torch:', error);
+    return false;
+  }
+}
+
+async function turnOffTorch() {
+  if (!torchTrack) return;
+  try {
+    await torchTrack.applyConstraints({
+      advanced: [{ torch: false }]
+    });
+  } catch (error) {
+    console.error('Failed to turn off torch:', error);
+  }
+}
+
+// ── BRIGHTNESS CONTROL ──────────────────────────
+function updateBrightness(value) {
+  brightness = parseInt(value);
+  brightDisplay.textContent = brightness + '%';
+  
+  // Brightness doesn't affect hardware torch, but we can simulate with opacity
+  // For now, just update the display
+}
+
+// ── MODE CONTROL ────────────────────────────────
+function setMode(mode) {
+  if (!isFlashOn && mode !== 'normal') {
+    infoText.textContent = 'Turn on flashlight first!';
+    return;
+  }
+
+  // Clear previous timers
+  if (strobeTimer) clearInterval(strobeTimer);
+  if (sosTimer) clearTimeout(sosTimer);
+
+  // Update buttons
+  normalModeBtn.classList.remove('active');
+  strobeModeBtn.classList.remove('active');
+  sosModeBtn.classList.remove('active');
+
+  currentMode = mode;
+
+  switch(mode) {
+    case 'normal':
+      normalModeBtn.classList.add('active');
+      turnOnTorch();
+      infoText.textContent = 'Flashlight ON - Normal mode';
+      break;
+
+    case 'strobe':
+      strobeModeBtn.classList.add('active');
+      infoText.textContent = 'Strobe mode active';
+      strobeTimer = setInterval(() => {
+        if (isFlashOn) {
+          turnOffTorch().then(() => setTimeout(turnOnTorch, 50));
+        }
+      }, 150);
+      break;
+
+    case 'sos':
+      sosModeBtn.classList.add('active');
+      sosIndex = 0;
+      infoText.textContent = 'SOS signal active';
+      runSOS();
+      break;
+  }
+}
+
+function runSOS() {
+  if (currentMode !== 'sos' || !isFlashOn) return;
+
+  if (sosIndex < sosPattern.length) {
+    const duration = sosPattern[sosIndex];
+    const isOn = sosIndex % 2 === 0;
+
+    if (isOn) {
+      turnOnTorch();
+    } else {
+      turnOffTorch();
+    }
+
+    sosIndex++;
+    sosTimer = setTimeout(runSOS, duration);
+  } else {
+    sosIndex = 0;
+    sosTimer = setTimeout(runSOS, 200);
+  }
+}
+
+// ── MAIN TOGGLE ─────────────────────────────────
+async function toggleFlash() {
+  if (!torchTrack) {
+    infoText.textContent = 'Torch not available';
+    return;
+  }
+
+  if (isFlashOn) {
+    // Turn off
+    await turnOffTorch();
+    isFlashOn = false;
+    powerBtn.classList.remove('on');
+    statusText.textContent = 'READY';
+    infoText.textContent = 'Flashlight OFF';
+    successMsg.style.display = 'none';
+
+    // Clear timers
+    if (strobeTimer) clearInterval(strobeTimer);
+    if (sosTimer) clearTimeout(sosTimer);
+
+    // Reset mode
+    currentMode = 'normal';
+    normalModeBtn.classList.add('active');
+    strobeModeBtn.classList.remove('active');
+    sosModeBtn.classList.remove('active');
+
+    // Release wake lock
+    if (wakeLock) {
+      try { wakeLock.release(); } catch(e) {}
+      wakeLock = null;
+    }
+  } else {
+    // Turn on
+    const success = await turnOnTorch();
+    if (success) {
+      isFlashOn = true;
+      powerBtn.classList.add('on');
+      statusText.textContent = 'ACTIVE';
+      infoText.textContent = 'Flashlight ON';
+      successMsg.style.display = 'block';
+
+      // Request wake lock
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+        } catch(e) {}
+      }
+    } else {
+      infoText.textContent = 'Failed to turn on torch';
+    }
+  }
+}
+
+// ── INITIALIZATION ──────────────────────────────
+window.addEventListener('load', () => {
+  initTorch();
+});
+
+// ── VISIBILITY CHANGE ──────────────────────────
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden) {
+    if (isFlashOn) {
+      await turnOffTorch();
+    }
+  } else {
+    if (isFlashOn) {
+      await turnOnTorch();
+    }
   }
 });
 
-// Handle page visibility
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden && isOn && hasTorch && torchTrack) {
-    try { torchTrack.applyConstraints({ advanced: [{ torch: false }] }); } catch(e) {}
+// ── PREVENT SLEEP ──────────────────────────────
+document.addEventListener('touchstart', () => {
+  if ('wakeLock' in navigator && isFlashOn && !wakeLock) {
+    navigator.wakeLock.request('screen').then(lock => {
+      wakeLock = lock;
+    }).catch(err => console.log(err));
   }
 });
 </script>
