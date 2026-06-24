@@ -6,7 +6,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Flashlight</title>
+<meta name="apple-mobile-web-app-title" content="Flashlight">
+<meta name="description" content="A powerful flashlight app with torch, strobe, disco, and SOS modes.">
+<meta name="theme-color" content="#0d0d14">
+<title>Flashlight - Ultimate Torch App</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%230d0d14' width='180' height='180'/><text x='90' y='120' font-size='80' font-weight='bold' fill='%234f8eff' text-anchor='middle' font-family='sans-serif'>🔦</text></svg>">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500&display=swap');
 
@@ -54,6 +58,7 @@ header{
   color:#252540;text-transform:uppercase;
   background:#131320;border:1px solid #1e1e35;
   padding:6px 12px;border-radius:20px;margin-top:6px;
+  transition:all .3s ease;
 }
 
 /* ══ CENTER SECTION ══ */
@@ -104,8 +109,8 @@ header{
 .power-icon{
   width:48px;height:48px;position:relative;
   display:flex;align-items:center;justify-content:center;
+  font-size:24px;
 }
-.power-icon svg{width:100%;height:100%}
 #pRing{fill:none;stroke:#1e1e38;stroke-width:2.8;stroke-linecap:round;stroke-dasharray:200;stroke-dashoffset:50;transition:stroke .3s,filter .3s}
 #pStem{stroke:#1e1e38;stroke-width:2.8;stroke-linecap:round;transition:stroke .3s,filter .3s}
 
@@ -160,6 +165,7 @@ input#brightSlider{
   margin:0;
 }
 input#brightSlider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;}
+input#brightSlider::-moz-range-thumb{width:24px;height:24px;border:none;background:transparent;cursor:pointer;}
 
 /* ── MODES GRID ── */
 .modes-grid{
@@ -245,6 +251,10 @@ input#bOn::-webkit-slider-thumb{
   -webkit-appearance:none;width:24px;height:24px;border-radius:50%;
   background:rgba(0,0,0,.22);border:2px solid rgba(0,0,0,.3);cursor:pointer;
 }
+input#bOn::-moz-range-thumb{
+  width:24px;height:24px;border-radius:50%;
+  background:rgba(0,0,0,.22);border:2px solid rgba(0,0,0,.3);cursor:pointer;
+}
 .on-info{font-size:10px;color:rgba(0,0,0,.3);letter-spacing:1px;text-align:center}
 .off-big-btn{
   width:100%;
@@ -268,6 +278,19 @@ input#bOn::-webkit-slider-thumb{
   white-space:nowrap;
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ══ MOBILE FIX ══ */
+@supports (padding: max(0px)) {
+  body { padding: max(0px, env(safe-area-inset-bottom)); }
+}
+
+/* Landscape mode adjustment */
+@media (max-height: 600px) {
+  header { padding: 20px 28px 0; }
+  .btn-ring-wrap { margin-bottom: 20px; }
+  .status-bar { margin-bottom: 16px; }
+  .modes-grid { margin-bottom: 12px; }
+}
 </style>
 </head>
 <body>
@@ -280,7 +303,7 @@ input#bOn::-webkit-slider-thumb{
   <header>
     <div>
       <div class="logo">Flash<span>.</span></div>
-      <div class="badge" id="modeBadge">● SCREEN MODE</div>
+      <div class="badge" id="modeBadge">● INITIALIZING</div>
     </div>
   </header>
 
@@ -291,12 +314,7 @@ input#bOn::-webkit-slider-thumb{
       <div class="pulse-ring"></div>
       <div class="pulse-ring"></div>
       <div id="powerBtn" onclick="toggle()">
-        <div class="power-icon">
-          <svg viewBox="0 0 52 52">
-            <line id="pStem" x1="26" y1="4" x2="26" y2="22"/>
-            <circle id="pRing" cx="26" cy="28" r="16" transform="rotate(-90,26,28)"/>
-          </svg>
-        </div>
+        <div class="power-icon">🔦</div>
         <div class="power-label" id="powerLbl">TAP TO ON</div>
       </div>
     </div>
@@ -388,11 +406,10 @@ let color       = '#ffffff';
 let strobeMode  = null; // null | 'fast' | 'slow' | 'sos'
 let sosTimer    = null;
 let wakeLock    = null;
+let sosIdx      = 0;
 
 // ── DOM ───────────────────────────────────────────
 const lightLayer  = document.getElementById('lightLayer');
-const pRing       = document.getElementById('pRing');
-const pStem       = document.getElementById('pStem');
 const powerLbl    = document.getElementById('powerLbl');
 const led         = document.getElementById('led');
 const statusTxt   = document.getElementById('statusTxt');
@@ -404,12 +421,14 @@ const toast       = document.getElementById('toast');
 
 // ── BRIGHTNESS ────────────────────────────────────
 function setBright(v) {
-  bright = v;
-  document.getElementById('brightSlider').value = v;
-  document.getElementById('bOn').value = v;
-  trackFill.style.width = v + '%';
-  brightVal.textContent = v + '%';
-  if (isOn) lightLayer.style.opacity = (v / 100).toFixed(2);
+  bright = Math.max(10, Math.min(100, v));
+  document.getElementById('brightSlider').value = bright;
+  document.getElementById('bOn').value = bright;
+  trackFill.style.width = bright + '%';
+  brightVal.textContent = bright + '%';
+  if (isOn && strobeMode === null) {
+    lightLayer.style.opacity = (bright / 100).toFixed(2);
+  }
 }
 
 // ── COLOR ─────────────────────────────────────────
@@ -417,7 +436,7 @@ function setColor(btn, col) {
   color = col;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  if (isOn) {
+  if (isOn && strobeMode === null) {
     lightLayer.style.background = col;
   }
 }
@@ -438,7 +457,6 @@ const SOS_PATTERN = [
   1,0,1,0,1,2       // S: ...
 ];
 const DOT = 150;
-let sosIdx = 0;
 
 function runSOS() {
   if (strobeMode !== 'sos') return;
@@ -452,6 +470,7 @@ function runSOS() {
 // ── STROBE ────────────────────────────────────────
 function clearSpecialModes() {
   if (sosTimer) { clearTimeout(sosTimer); sosTimer = null; }
+  sosIdx = 0;
   lightLayer.classList.remove('strobe', 'strobe-slow');
   lightLayer.style.opacity = isOn ? (bright / 100).toFixed(2) : '0';
   document.getElementById('strobeBtn').classList.remove('active');
@@ -501,7 +520,7 @@ async function turnOn() {
   isOn = true;
 
   // Try real torch (HTTPS only)
-  if (!torchTrack) {
+  if (!torchTrack && !hasTorch) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' }
@@ -516,13 +535,14 @@ async function turnOn() {
         showToast('🔦 Real flashlight ON!');
       } else {
         track.stop();
-        showToast('💡 Screen mode — no torch hardware');
+        showToast('💡 Screen mode (no torch hardware)');
       }
     } catch(e) {
       if (e.name === 'NotAllowedError') showToast('❌ Camera permission denied');
+      else if (e.name === 'NotFoundError') showToast('💡 Screen mode (no camera)');
       else showToast('💡 Screen mode active');
     }
-  } else if (hasTorch) {
+  } else if (hasTorch && torchTrack) {
     try { await torchTrack.applyConstraints({ advanced: [{ torch: true }] }); } catch(e) {}
   }
 
@@ -559,8 +579,6 @@ async function turnOff() {
 
 function setUI(on) {
   const c = on ? '#5ca8ff' : '#1e1e38';
-  pRing.style.stroke = pStem.style.stroke = c;
-  pRing.style.filter = pStem.style.filter = on ? 'drop-shadow(0 0 5px #4f8eff)' : 'none';
   powerLbl.style.color = c;
   powerLbl.textContent = on ? 'TAP TO OFF' : 'TAP TO ON';
   led.style.background = on ? '#4f8eff' : '#1a1a30';
@@ -583,11 +601,42 @@ document.addEventListener('visibilitychange', async () => {
 });
 
 // Detect capabilities on load
-window.addEventListener('load', () => {
-  if (!navigator.mediaDevices?.getUserMedia) {
+window.addEventListener('load', async () => {
+  try {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      modeBadge.textContent = '● SCREEN MODE';
+      showToast('📱 Screen mode available');
+    } else {
+      // Try to get camera permission to check for torch
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+        const track = stream.getVideoTracks()[0];
+        const caps = track.getCapabilities ? track.getCapabilities() : {};
+        if (caps.torch) {
+          modeBadge.textContent = '● TORCH READY';
+          track.stop();
+          showToast('🔦 Tap to activate flashlight');
+        } else {
+          modeBadge.textContent = '● SCREEN MODE';
+          track.stop();
+          showToast('📱 Screen mode available');
+        }
+      } catch(e) {
+        modeBadge.textContent = '● SCREEN MODE';
+        showToast('📱 Screen mode available');
+      }
+    }
+  } catch(e) {
     modeBadge.textContent = '● SCREEN MODE';
-  } else if (typeof Magnetometer !== 'undefined' || true) {
-    modeBadge.textContent = '● TAP TO START';
+  }
+});
+
+// Handle page visibility
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && isOn && hasTorch && torchTrack) {
+    try { torchTrack.applyConstraints({ advanced: [{ torch: false }] }); } catch(e) {}
   }
 });
 </script>
